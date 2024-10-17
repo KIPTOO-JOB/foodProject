@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response, jsonify
 from flask_migrate import Migrate
 from server.models import *
-
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 app = Flask(__name__)
 
@@ -11,12 +11,34 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///kitchen.db"
 migrate = Migrate(app, db)
 db.init_app(app)
 
+# Initialize JWT Manager
+jwt = JWTManager(app)
+
 # Routes
 @app.route('/')
 def index():
     return "<h1>Hello, welcome to the Kitchen API</h1>"
 
-# Recipes Route
+# User Registration
+@app.route('/register', methods = ['POST'])
+def register():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+    full_name = data.get('full_name')
+
+    if User.query.filter_by(username=username).first():
+        return make_response(jsonify({"msg":"Username already exists"}), 201)
+    
+    new_user = User(username=username, password=password, email=email, full_name=full_name)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return make_response(jsonify({"msg":"User registered successfully"}), 200)
+
+
+    # Recipes Route
 @app.route('/recipes', methods=['GET', 'POST'])
 def handle_recipes():
     if request.method == 'GET':
