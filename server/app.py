@@ -1,6 +1,7 @@
 from flask import Flask, request, make_response, jsonify
 from flask_migrate import Migrate
-from model import *
+from server.models import *
+
 
 app = Flask(__name__)
 
