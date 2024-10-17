@@ -26,3 +26,9 @@ class Category(db.Model):
     description = db.Column(db.String(250))
 
     recipe = db.relationship('Recipe',back_populates='category')
+
+
+class Ingredient(db.Model):
+    __tablename__ = 'ingredients'
+    
+    id = db.Column(db.Integer,primary_key=True)
