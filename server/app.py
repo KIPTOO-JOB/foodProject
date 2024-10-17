@@ -37,6 +37,19 @@ def register():
 
     return make_response(jsonify({"msg":"User registered successfully"}), 200)
 
+    #User Login
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=user.id)
+        return make_response(jsonify(access_token=access_token), 200)
+
+    return make_response(jsonify({"msg": "Bad username or password"}), 401)
 
     # Recipes Route
 @app.route('/recipes', methods=['GET', 'POST'])
