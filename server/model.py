@@ -78,7 +78,7 @@ class Review(db.Model, SerializerMixin):
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules = ("-reviews.user",)
+    serialize_rules = ("-reviews.user","-created_at","updated_at")
 
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String, nullable=False)
