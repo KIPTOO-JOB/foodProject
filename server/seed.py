@@ -1,5 +1,5 @@
 from app import app
-from model import * 
+from server.models import * 
 from datetime import datetime
 
 with app.app_context():
