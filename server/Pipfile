@@ -10,6 +10,8 @@ Flask-SQLAlchemy = "3.0.3"
 sqlalchemy-serializer = "*"
 flask-cors = "*"
 flask-jwt-extended = "*"
+python-dotenv = "*"
+
 [dev-packages]
 
 [requires]

@@ -2,11 +2,13 @@ from flask import Flask, request, make_response, jsonify
 from flask_migrate import  Migrate
 from models import *
 import os
-from flask_jwt_extended import JWTManager, create_access_token,jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_refresh_token, create_access_token,jwt_required, get_jwt_identity, unset_jwt_cookies
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///kitchen.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('SQLALCHEMY_DATABASE_URI')
+app.config['JWT_SECRET_KEY'] = os.environ.get ('JWT_SECRET_KEY')
+
 
 # Initialize migration and database
 migrate = Migrate(app, db)
@@ -19,56 +21,6 @@ jwt = JWTManager(app)
 @app.route('/')
 def index():
     return "<h1>Hello, welcome to the Kitchen API</h1>"
-
-
-#Users
-# @app.route('/users', methods=['POST', 'GET'])
-# def users():
-#     if request.method == 'GET':
-#         response=  [user.to_dict() for user in User.query.all() ]
-        
-#         return make_response(response, 200)
-    
-#     if request.method == 'POST':
-#         data = request.get_json()
-#         new_user = User(username=data['username'], email=data['email'])
-#         db.session.add(new_user)
-#         db.session.commit()
-        
-#         return make_response(new_user.to_dict(), 201)
-    
-    
-# @app.route('/users/<int:id>', methods=['DELETE', 'PATCH', 'GET'])
-# def user(id):
-#     if request.method == 'GET':
-#         user  = User.query.get(id)
-#         if not user:
-#             return make_response({"message": "User not found"}, 404)
-#         return make_response(user.to_dict(), 200)
-    
-#     if request.method == 'DELETE':
-#         user  = User.query.get(id)
-#         if not user:
-#             return make_response({"message": "User not found"}, 404)
-#         db.session.delete(user)
-#         db.session.commit()
-        
-#         return make_response({"message": "user deleted successfully"}, 200)
-    
-#     if request.method == "PATCH":
-#         user  = User.query.get(id)
-#         if not user:
-#             return make_response({"message": "User not found"}, 404)
-        
-#         data = request.get_json()
-#         print(data)
-#         for attr in request.get_json():
-#             setattr(user, attr, request.get_json().get(attr))
-            
-#         db.session.add(user)
-#         db.session.commit()
-            
-#         return make_response(user.to_dict(), 200)
 
 
 # User Registration
@@ -90,9 +42,10 @@ def register():
 
     return make_response(jsonify({"msg":"User registered successfully"}), 200)
 
-    #User Login
+ #User Login
 @app.route('/login', methods=['POST'])
 def login():
+
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -100,13 +53,40 @@ def login():
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
-        return make_response(jsonify(access_token=access_token), 200)
+        refresh_token =create_refresh_token(identity= user.username)
+        return make_response ({
+            'msg': 'Login successful',
+            'tokens':{
+                "access_token": access_token,
+                "refresh_token": refresh_token
+            }
+            
+                                     },200)
 
     return make_response(jsonify({"msg": "Bad username or password"}), 401)
 
+# LogOut 
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    response = jsonify({"msg": "logout successful"}) 
+    unset_jwt_cookies(response)
+
+    return response
+
+
     # Recipes Route
 @app.route('/recipes', methods=['GET', 'POST'])
+@jwt_required()
+
 def handle_recipes():
+    current_user = get_jwt_identity()
+    
+    if not current_user:
+        return make_response(jsonify({
+            "msg": "Please Login to access "
+        }),401)
+
     if request.method == 'GET':
         recipes = [recipe.to_dict() for recipe in Recipe.query.all()]
         return make_response(jsonify(recipes), 200)
@@ -126,7 +106,16 @@ def handle_recipes():
         return make_response(new_recipe.to_dict(), 201)
 
 @app.route('/recipes/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
+
+@jwt_required()
 def recipe_by_id(id):
+    current_user = get_jwt_identity()
+    
+    if not current_user:
+        return make_response(jsonify({
+            "msg": "Please Login to access "
+        }),401)
+    
     recipe = Recipe.query.get(id)
     if not recipe:
         return make_response(jsonify({"message": "Recipe not found"}), 404)
@@ -148,7 +137,16 @@ def recipe_by_id(id):
 
 # Categories Route
 @app.route('/categories', methods=['GET', 'POST'])
+@jwt_required()
+
 def handle_categories():
+    current_user = get_jwt_identity()
+    
+    if not current_user:
+        return make_response(jsonify({
+            "msg": "Please Login to access "
+        }),401)
+    
     if request.method == 'GET':
         categories = [category.to_dict() for category in Category.query.all()]
         return make_response(jsonify(categories), 200)
@@ -164,7 +162,18 @@ def handle_categories():
         return make_response(new_category.to_dict(), 201)
 
 @app.route('/categories/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
+
+@jwt_required()
+
 def category_by_id(id):
+    current_user = get_jwt_identity()
+
+    
+    if not current_user:
+        return make_response(jsonify({
+            "msg": "Please Login to access "
+        }),401)
+    
     category = Category.query.get(id)
     if not category:
         return make_response(jsonify({"message": "Category not found"}), 404)
@@ -186,7 +195,15 @@ def category_by_id(id):
 
 # Reviews Route
 @app.route('/reviews', methods=['GET', 'POST'])
+@jwt_required()
 def handle_reviews():
+    current_user = get_jwt_identity()
+    
+    if not current_user:
+        return make_response(jsonify({
+            "msg": "Please Login to access "
+        }),401)
+
     if request.method == 'GET':
         reviews = [review.to_dict() for review in Review.query.all()]
         return make_response(jsonify(reviews), 200)
@@ -203,7 +220,16 @@ def handle_reviews():
         return make_response(new_review.to_dict(), 201)
 
 @app.route('/reviews/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
+@jwt_required()
 def review_by_id(id):
+
+    current_user = get_jwt_identity()
+    
+    if not current_user:
+        return make_response(jsonify({
+            "msg": "Please Login to access "
+        }),401)
+    
     review = Review.query.get(id)
     if not review:
         return make_response(jsonify({"message": "Review not found"}), 404)
