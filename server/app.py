@@ -1,8 +1,11 @@
 from flask import Flask, request, make_response, jsonify
 from flask_migrate import  Migrate
 from models import *
+from dotenv import load_dotenv
 import os
 from flask_jwt_extended import JWTManager, create_refresh_token, create_access_token,jwt_required, get_jwt_identity, unset_jwt_cookies
+
+load_dotenv()
 
 app = Flask(__name__)
 
