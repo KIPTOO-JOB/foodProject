@@ -1,7 +1,8 @@
 from flask import Flask, request, make_response, jsonify
-from flask_migrate import Migrate
-from server.models import *
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_migrate import  Migrate
+from models import *
+import os
+from flask_jwt_extended import JWTManager, create_access_token,jwt_required, get_jwt_identity
 
 app = Flask(__name__)
 
@@ -19,6 +20,57 @@ jwt = JWTManager(app)
 def index():
     return "<h1>Hello, welcome to the Kitchen API</h1>"
 
+
+#Users
+@app.route('/users', methods=['POST', 'GET'])
+def users():
+    if request.method == 'GET':
+        response=  [user.to_dict() for user in User.query.all() ]
+        
+        return make_response(response, 200)
+    
+    if request.method == 'POST':
+        data = request.get_json()
+        new_user = User(username=data['username'], email=data['email'])
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return make_response(new_user.to_dict(), 201)
+    
+    
+@app.route('/users/<int:id>', methods=['DELETE', 'PATCH', 'GET'])
+def user(id):
+    if request.method == 'GET':
+        user  = User.query.get(id)
+        if not user:
+            return make_response({"message": "User not found"}, 404)
+        return make_response(user.to_dict(), 200)
+    
+    if request.method == 'DELETE':
+        user  = User.query.get(id)
+        if not user:
+            return make_response({"message": "User not found"}, 404)
+        db.session.delete(user)
+        db.session.commit()
+        
+        return make_response({"message": "user deleted successfully"}, 200)
+    
+    if request.method == "PATCH":
+        user  = User.query.get(id)
+        if not user:
+            return make_response({"message": "User not found"}, 404)
+        
+        data = request.get_json()
+        print(data)
+        for attr in request.get_json():
+            setattr(user, attr, request.get_json().get(attr))
+            
+        db.session.add(user)
+        db.session.commit()
+            
+        return make_response(user.to_dict(), 200)
+
+
 # User Registration
 @app.route('/register', methods = ['POST'])
 def register():
@@ -32,6 +84,7 @@ def register():
         return make_response(jsonify({"msg":"Username already exists"}), 201)
     
     new_user = User(username=username, password=password, email=email, full_name=full_name)
+    new_user.set_password(data.get('password'))
     db.session.add(new_user)
     db.session.commit()
 

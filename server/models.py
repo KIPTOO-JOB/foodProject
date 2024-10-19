@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
+from sqlalchemy import func 
 from sqlalchemy_serializer import SerializerMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -88,12 +89,19 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String)
 
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp)
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
 
     reviews = db.relationship('Review', back_populates='user')
-
-    #Password hashing and checking
+    
+    @validates(email)
+    def validate_email(self,key,value):
+        if "@" not in value:
+            raise ValueError ("invalid email address")        
+        return value
+    
+    # password hashing
+    
     def set_password(self,password):
         self.password = generate_password_hash(password)
 
