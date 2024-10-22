@@ -3,6 +3,7 @@ from flask_migrate import  Migrate
 from models import *
 from dotenv import load_dotenv
 import os
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_refresh_token, create_access_token,jwt_required, get_jwt_identity, unset_jwt_cookies
 
 load_dotenv()
@@ -15,6 +16,7 @@ app.config['JWT_SECRET_KEY'] = os.environ.get ('JWT_SECRET_KEY')
 
 # Initialize migration and database
 migrate = Migrate(app, db)
+CORS(app)
 db.init_app(app)
 
 # Initialize JWT Manager
@@ -255,3 +257,5 @@ def review_by_id(id):
 # Start the Flask app
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
+
+
