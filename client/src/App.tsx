@@ -2,9 +2,10 @@ import Login from "@/components/Login";
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
-import Dashboard from "./components/Dashboard";
+// import Dashboard from "./components/Recipes";
 import Register from "./components/Register";
 import Home from "./components/Home";
+import Recipes from "./components/pages/Recipes";
 
 function App() {
 	return (
@@ -13,7 +14,7 @@ function App() {
 				<Route path="/" element={<Home />} />
 				<Route path="/login" element={<Login />} />
 				<Route path="/register" element={<Register />} />
-				<Route path="/dashboard" element={<Dashboard />} />
+				<Route path="/recipes" element={<Recipes />} />
 			</Routes>
 			<Toaster />
 		</div>

@@ -38,16 +38,19 @@ const Register = () => {
 		try {
 			registerSchema.parse({ fullName, email, username, password });
 
-			const response = await fetch("http://127.0.0.1:5555/register", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					full_name: fullName,
-					email,
-					username,
-					password,
-				}),
-			});
+			const response = await fetch(
+				"https://server-v95o.onrender.com/register",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						full_name: fullName,
+						email,
+						username,
+						password,
+					}),
+				}
+			);
 
 			if (!response.ok) {
 				const errorData = await response.json();
@@ -59,7 +62,7 @@ const Register = () => {
 				description: "Redirecting to login...",
 			});
 
-			setTimeout(() => navigate("/"), 2000);
+			setTimeout(() => navigate("/login"), 2000);
 		} catch (err) {
 			toast({
 				variant: "destructive",

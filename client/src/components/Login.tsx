@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
+// Validation schema for form inputs
 const loginSchema = z.object({
 	username: z
 		.string()
@@ -36,19 +37,41 @@ const Login = () => {
 		setIsLoading(true);
 
 		try {
+			// Validate form data
 			loginSchema.parse({ username, password });
 
-			const response = await fetch(" http://127.0.0.1:5555/login", {
+			// Make POST request to backend
+			const response = await fetch("https://server-v95o.onrender.com/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ username, password }),
 			});
 
-			if (!response.ok) throw new Error("Login failed");
+			// Handle non-OK responses
+			if (!response.ok) {
+				const errorDetails = await response.json();
+				throw new Error(errorDetails.msg || "Login failed");
+			}
 
-			await response.json();
-			navigate("/Dashboard");
+			// Get tokens from response
+			const { tokens } = await response.json();
+
+			// Check if tokens exist and store them in sessionStorage
+			if (tokens) {
+				sessionStorage.setItem("access_token", tokens.access_token);
+				sessionStorage.setItem("refresh_token", tokens.refresh_token);
+				console.log(
+					"Tokens saved in sessionStorage:",
+					sessionStorage.getItem("access_token")
+				);
+
+				// Navigate to recipes page after successful login
+				navigate("/recipes");
+			} else {
+				throw new Error("No tokens returned from server");
+			}
 		} catch (err) {
+			// Handle both validation and server errors
 			toast({
 				variant: "destructive",
 				title: "Login Error",
@@ -96,7 +119,7 @@ const Login = () => {
 							/>
 						</div>
 					</CardContent>
-					<CardFooter className=" flex flex-col space-y-4">
+					<CardFooter className="flex flex-col space-y-4">
 						<Button
 							className="w-full hover:bg-blue-50 rounded-md"
 							type="submit"
