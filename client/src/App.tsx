@@ -1,10 +1,10 @@
-import Login from "@/components/Login";
+import Login from "@/components/auth/Login";
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 // import Dashboard from "./components/Recipes";
-import Register from "./components/Register";
-import Home from "./components/Home";
+import Register from "./components/auth/Register";
+import Home from "./components/pages/Home";
 import Recipes from "./components/pages/Recipes";
 
 function App() {

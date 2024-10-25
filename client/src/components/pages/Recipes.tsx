@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Recipe } from "../../types/recipe.types";
 import RecipeCard from "../RecipieCard";
-import LoadingSpinner from "../LoadingSpinner";
+import LoadingSpinner from "../loading/LoadingSpinner";
+// import { main } from "framer-motion/client";
+import Navbar from "../Navbar";
 
 const Recipes: React.FC = () => {
 	const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -74,18 +76,22 @@ const Recipes: React.FC = () => {
 	}
 
 	return (
-		<div className="recipe-app max-w-7xl mx-auto px-4 py-8">
-			<h1 className="text-3xl font-bold mb-8 text-center">Recipes</h1>
-			{recipes.length > 0 ? (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{recipes.map((recipe) => (
-						<RecipeCard key={recipe.id} recipe={recipe} />
-					))}
-				</div>
-			) : (
-				<p className="text-center text-gray-500 text-lg">No recipes found.</p>
-			)}
-		</div>
+		<main>
+			<nav>
+				<Navbar />
+			</nav>
+			<div className="max-w-7xl mx-auto  px-4 py-8 mt-14">
+				{recipes.length > 0 ? (
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{recipes.map((recipe) => (
+							<RecipeCard key={recipe.id} recipe={recipe} />
+						))}
+					</div>
+				) : (
+					<p className="text-center text-gray-500 text-lg">No recipes found.</p>
+				)}
+			</div>
+		</main>
 	);
 };
 
